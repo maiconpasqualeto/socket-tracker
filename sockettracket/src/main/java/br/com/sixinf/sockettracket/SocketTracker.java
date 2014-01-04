@@ -11,6 +11,9 @@ import java.net.Socket;
 
 import org.apache.log4j.Logger;
 
+import br.com.sixinf.ferramentas.persistencia.AdministradorPersistencia;
+import br.com.sixinf.ferramentas.persistencia.PersistenciaException;
+
 /**
  * @author maicon
  *
@@ -43,7 +46,14 @@ public class SocketTracker {
 	
 	public static void main(String[] args){
 		LOG.info("Esperando conexão...");
-		esperaConexoes();
+		try {
+			AdministradorPersistencia.iniciaUnidadeDePersistencia("trackerUnit");
+		} catch (PersistenciaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		//esperaConexoes();
 	}
 	
 	private static class ThreadSocket implements Runnable {

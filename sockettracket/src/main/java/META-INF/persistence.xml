@@ -8,7 +8,7 @@
 		
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 		
-		<!-- <class>br.com.scp.persistencia.entidades.Custas</class> -->
+		<!-- <class>br.com.sixinf.sockettracket.persistencia.Tracker</class> --> 
 		
 		<properties>
 			<!--  <property name="hibernate.show_sql" value="true"/> -->

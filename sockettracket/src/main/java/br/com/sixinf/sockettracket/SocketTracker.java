@@ -45,15 +45,15 @@ public class SocketTracker {
 	}
 	
 	public static void main(String[] args){
-		LOG.info("Esperando conexão...");
+		//LOG.info("Esperando conexão...");
 		try {
 			AdministradorPersistencia.iniciaUnidadeDePersistencia("trackerUnit");
+			
 		} catch (PersistenciaException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOG.error("Erro na inicialização da persistência", e);
 		}
 		
-		//esperaConexoes();
+		esperaConexoes();
 	}
 	
 	private static class ThreadSocket implements Runnable {

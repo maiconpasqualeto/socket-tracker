@@ -4,16 +4,22 @@
 package br.com.sixinf.sockettracket.persistencia;
 
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import org.hibernate.annotations.Cascade;
 
 import br.com.sixinf.ferramentas.persistencia.Entidade;
 
@@ -54,6 +60,10 @@ public class Tracker implements Entidade {
 	
 	@Column(name="status_registro")
 	private Character statusRegistro;
+	
+	@OneToMany(mappedBy="tracker", fetch=FetchType.LAZY, cascade=CascadeType.DETACH)
+	@Cascade(org.hibernate.annotations.CascadeType.DETACH)
+	private List<Posicao> posicoes;
 	
 	public Long getId() {
 		return id;

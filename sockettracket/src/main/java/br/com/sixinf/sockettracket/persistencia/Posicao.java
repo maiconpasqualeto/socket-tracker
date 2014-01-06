@@ -4,11 +4,14 @@
 package br.com.sixinf.sockettracket.persistencia;
 
 import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -50,10 +53,10 @@ public class Posicao implements Entidade {
 	private Character longitudeQuadrande;
 	
 	@Column(name="latitude_decimal")
-	private String latitudeDecimal;
+	private Double latitudeDecimal;
 	
 	@Column(name="longitude_decimal")
-	private String longitudeDecimal;
+	private Double longitudeDecimal;
 	
 	@Column(name="data_hora_coordenada")
 	@Temporal(TemporalType.TIMESTAMP)
@@ -61,6 +64,16 @@ public class Posicao implements Entidade {
 	
 	@Column(name="status_registro")
 	private Character statusRegistro;
+	
+	@Column(name="velocidade")
+	private Double velocidade;
+	
+	@Column(name="curso")
+	private Double curso;
+	
+	@ManyToOne(targetEntity=Tracker.class)
+	@JoinColumn(name="id_tracker")
+	private Tracker tracker;
 	
 	public Long getId() {
 		return id;
@@ -91,7 +104,7 @@ public class Posicao implements Entidade {
 	}
 
 	public void setLatitude(String latitude) {
-		this.latitude = latitude;
+		this.latitude = latitude;		
 	}
 
 	public String getLongitude() {
@@ -117,20 +130,20 @@ public class Posicao implements Entidade {
 	public void setLongitudeQuadrande(Character longitudeQuadrande) {
 		this.longitudeQuadrande = longitudeQuadrande;
 	}
-
-	public String getLatitudeDecimal() {
+	
+	public Double getLatitudeDecimal() {
 		return latitudeDecimal;
 	}
 
-	public void setLatitudeDecimal(String latitudeDecimal) {
+	public void setLatitudeDecimal(Double latitudeDecimal) {
 		this.latitudeDecimal = latitudeDecimal;
 	}
 
-	public String getLongitudeDecimal() {
+	public Double getLongitudeDecimal() {
 		return longitudeDecimal;
 	}
 
-	public void setLongitudeDecimal(String longitudeDecimal) {
+	public void setLongitudeDecimal(Double longitudeDecimal) {
 		this.longitudeDecimal = longitudeDecimal;
 	}
 
@@ -148,6 +161,30 @@ public class Posicao implements Entidade {
 
 	public void setStatusRegistro(Character statusRegistro) {
 		this.statusRegistro = statusRegistro;
+	}
+
+	public Tracker getTracker() {
+		return tracker;
+	}
+
+	public void setTracker(Tracker tracker) {
+		this.tracker = tracker;
+	}
+
+	public Double getVelocidade() {
+		return velocidade;
+	}
+
+	public void setVelocidade(Double velocidade) {
+		this.velocidade = velocidade;
+	}
+
+	public Double getCurso() {
+		return curso;
+	}
+
+	public void setCurso(Double curso) {
+		this.curso = curso;
 	}
 
 	@Override

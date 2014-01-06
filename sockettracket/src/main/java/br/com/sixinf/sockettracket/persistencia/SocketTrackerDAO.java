@@ -6,6 +6,7 @@ package br.com.sixinf.sockettracket.persistencia;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 
 import org.apache.log4j.Logger;
@@ -52,6 +53,31 @@ public class SocketTrackerDAO extends BridgeBaseDAO {
             em.close();
         }
 		return list;
+	}
+	
+	public Tracker buscarTodosTrackersPeloSerial(String serial) {
+		EntityManager em = AdministradorPersistencia.getEntityManager();
+		
+		Tracker t = null;
+		try {
+			StringBuilder hql = new StringBuilder();
+			hql.append("select t from Tracker t ");
+			hql.append("where t.statusRegistro = 'A' ");
+			hql.append("and t.numeroSerie = :numeroSerie ");
+			TypedQuery<Tracker> q = em.createQuery(hql.toString(), Tracker.class);
+			q.setMaxResults(1);
+			q.setParameter("numeroSerie", serial);
+						
+			t = q.getSingleResult();
+						
+		} catch (NoResultException e) {
+        	
+        } catch (Exception e) {
+			log.error("Erro ao buscar Playlist", e);
+		} finally {
+            em.close();
+        }
+		return t;
 	}
 	
 }

@@ -132,7 +132,7 @@ public class SocketTracker {
 					// grava mensagem no banco de dados
 					gravaMensagemBanco(mensagem);
 					
-				} catch (IOException | InterruptedException | DAOException e) {
+				} catch (Exception e) {
 					LOG.error("Erro ao processar mensagem de posição", e);
 				} finally {
 					try {
@@ -212,15 +212,19 @@ public class SocketTracker {
 					double latitudeDec = graus + (min / 60);
 					if (latitudeQ.equals("S"))
 						latitudeDec = -latitudeDec;
+					
+					latitudeDec = Utilitarios.round(latitudeDec, 6);
 										
 					graus = Integer.parseInt(longitude.substring(0, 3));
-					min = Double.parseDouble(longitude.substring(3, 5));
+					min = Double.parseDouble(longitude.substring(3, 12));
 					//sec = Double.parseDouble(longitude.substring(6, 12));
 					//sec /= 10000; // ajusta casas decimais para o formato 74.6172
 					
 					double longitudeDec = graus + (min / 60);
 					if (longitudeQ.equals("W"))
 						longitudeDec = -longitudeDec;
+					
+					longitudeDec = Utilitarios.round(longitudeDec, 6);
 					
 					double velocidade = Double.parseDouble(strVelocidade);
 					double curso = Double.parseDouble(strCurso);

@@ -73,7 +73,7 @@ public class SocketTrackerDAO extends BridgeBaseDAO {
 		} catch (NoResultException e) {
         	
         } catch (Exception e) {
-			log.error("Erro ao buscar Playlist", e);
+			log.error("Erro ao buscar tracker pelo serial", e);
 		} finally {
             em.close();
         }

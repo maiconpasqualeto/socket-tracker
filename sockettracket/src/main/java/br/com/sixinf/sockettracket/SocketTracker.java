@@ -5,6 +5,7 @@ package br.com.sixinf.sockettracket;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class SocketTracker {
 	public void esperaConexoes(){
 		ServerSocket ss = null;
 		try {
-			ss = new ServerSocket(2828);
+			ss = new ServerSocket(52828);
 			while (true) {
 				Socket s = ss.accept();
 				int i = counter.getAndIncrement();
@@ -107,30 +108,39 @@ public class SocketTracker {
 			while (isAtivo) {
 				
 				InputStream is = null;
+				OutputStream os = null;
 				
 				try {
-				
+									
 					Socket socket = sockets.take();
 					
-					LOG.debug("Conexão recebida do IP: " + socket.getInetAddress());
+					try {
 					
-					// recebe
-					is = socket.getInputStream();
-					byte[] bytes = Utilitarios.fazLeituraStreamEmByteArray(is);
-					
-					String mensagem = new String(bytes);
-					
-					LOG.debug("Recebido: " + mensagem);
-					
-					socket.close();
-					
-					counter.decrementAndGet();
-					
-					// fazer verificação de checksum e controle de retransmissão
-					// TODO [Maicon] Implementar...
-					
-					// grava mensagem no banco de dados
-					gravaMensagemBanco(mensagem);
+						LOG.debug("Conexão recebida do IP: " + socket.getInetAddress());
+												
+						os = socket.getOutputStream();
+						is = socket.getInputStream();
+						
+						os.write("001".getBytes());
+						os.flush();
+						
+						byte[] bytes = Utilitarios.fazLeituraStreamEmByteArray(is);
+						
+						String mensagem = new String(bytes);
+						
+						LOG.debug("Recebido: " + mensagem);
+						
+						counter.decrementAndGet();
+						
+						// fazer verificação de checksum e controle de retransmissão
+						// TODO [Maicon] Implementar...
+						
+						// grava mensagem no banco de dados
+						gravaMensagemBanco(mensagem);
+						
+					} finally {
+						socket.close();
+					}
 					
 				} catch (Exception e) {
 					LOG.error("Erro ao processar mensagem de posição", e);
@@ -138,6 +148,8 @@ public class SocketTracker {
 					try {
 						if (is != null)
 							is.close();
+						if (os != null)
+							os.close();
 					} catch (IOException e) {
 						LOG.error("Erro ao fechar o stream", e);
 					}

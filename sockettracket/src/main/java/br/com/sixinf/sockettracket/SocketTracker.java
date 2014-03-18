@@ -3,11 +3,14 @@
  */
 package br.com.sixinf.sockettracket;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -38,6 +41,8 @@ public class SocketTracker {
 	private List<ThreadSocket> threads = new ArrayList<ThreadSocket>();
 	private static final int NUM_THREADS_POOL = 10;
 	private static AtomicInteger counter = new AtomicInteger(0);
+	
+	private static final int PORT = 52828;
 	
 		
 	private void criaPoolThreads(){
@@ -83,9 +88,12 @@ public class SocketTracker {
 		} catch (PersistenciaException e) {
 			LOG.error("Erro na inicialização da persistência", e);
 		}
-		SocketTracker st = new SocketTracker();
+		/*SocketTracker st = new SocketTracker();
 		st.criaPoolThreads();
-		st.esperaConexoes();
+		st.esperaConexoes();*/
+		
+		ThreadPoolSocketTracker pool = new ThreadPoolSocketTracker(PORT);
+		new Thread(pool).start();
 	}
 	
 	private static class ThreadSocket extends Thread {
@@ -107,8 +115,8 @@ public class SocketTracker {
 			
 			while (isAtivo) {
 				
-				InputStream is = null;
-				OutputStream os = null;
+				BufferedReader br = null;
+				BufferedWriter bw = null;
 				
 				try {
 									
@@ -118,27 +126,73 @@ public class SocketTracker {
 					
 						LOG.debug("Conexão recebida do IP: " + socket.getInetAddress());
 												
-						os = socket.getOutputStream();
-						is = socket.getInputStream();
+						br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+						bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 						
-						os.write("001".getBytes());
-						os.flush();
+						bw.write("%001\n\n");
+						bw.flush();
 						
-						byte[] bytes = Utilitarios.fazLeituraStreamEmByteArray(is);
+						// NANO  ,024249.000,V,   0.000000,N,    0.000000,E,0.0,  0.0,101010,020,005
+						// NANO  ,000321.000,V,8960.000000,N,    0.000000,E,0.0,  0.0,101010,   ,E  ,    ,025,E2P
+						// NANO  ,182605.000,A,2028.772932,S, 5436.260003,W,0.00,187.13,130214,,E,,025,���
+						// $GPRMC,232029.000,A,2028.746172,S,05435.774688,W,0.7,170.4,291213,   ,   ,A*6A
+						String line = null;
+						while ( (line = br.readLine()) != null ) {
+							LOG.debug("Recebido: " + line);
+							if (line.startsWith("NANO")) {
+								String[] partes = line.split(",");
+								
+								StringBuilder str = new StringBuilder();
+								String strId = partes[13];
+								if (strId.isEmpty())
+									strId = "000";
+								ByteBuffer id = ByteBuffer.wrap(("0" + strId).getBytes());
+								str.append("NANO").append(',');
+								str.append(id.getInt()).append(','); // id dispositivo
+								str.append("$GPRMC").append(',');
+								str.append(partes[1]).append(',');
+								str.append(partes[2]).append(',');
+								str.append(partes[3]).append(',');
+								str.append(partes[4]).append(',');
+								str.append(partes[5]).append(',');
+								str.append(partes[6]).append(',');
+								str.append(partes[7]).append(',');
+								str.append(partes[8]).append(',');
+								str.append(partes[9]);
+								
+								gravaMensagemBanco(str.toString());
+								
+							} else // TKSIM - Android Tracker Simulator
+								if (line.startsWith("TKSIM")) {
+									
+									gravaMensagemBanco(line);
+									
+								} else 
+									if (line.startsWith("STX")) {
+										String[] partes = line.split(",");
+										
+										if ("F".equals(partes[15]))
+											gravaMensagemBanco(line);
+										
+									}
+							
+						}
 						
+						LOG.debug("Finalizado");
+						
+						/*byte[] bytes = Utilitarios.fazLeituraStreamEmByteArray(is);
 						String mensagem = new String(bytes);
-						
 						LOG.debug("Recebido: " + mensagem);
-						
 						counter.decrementAndGet();
 						
 						// fazer verificação de checksum e controle de retransmissão
 						// TODO [Maicon] Implementar...
 						
 						// grava mensagem no banco de dados
-						gravaMensagemBanco(mensagem);
+						gravaMensagemBanco(mensagem);*/
 						
 					} finally {
+						counter.decrementAndGet();
 						socket.close();
 					}
 					
@@ -146,10 +200,10 @@ public class SocketTracker {
 					LOG.error("Erro ao processar mensagem de posição", e);
 				} finally {
 					try {
-						if (is != null)
-							is.close();
-						if (os != null)
-							os.close();
+						if (br != null)
+							br.close();
+						if (bw != null)
+							bw.close();
 					} catch (IOException e) {
 						LOG.error("Erro ao fechar o stream", e);
 					}
@@ -158,44 +212,45 @@ public class SocketTracker {
 			}
 			
 		}
-
-		// $GPRMC,232029.000,A,2028.746172,S,05435.774688,W,0.7,170.4,291213,,,A*6A
+		
+		// NANO ,[id],$GPRMC,024249.000,V,2028.746172,S,05435.774688,W,0.0,170.0,101010,020,005
+		// TKSIM,1111,$GPRMC,232029.000,A,2028.746172,S,05435.774688,W,0.7,170.4,291213,   ,   ,A*6A
+		// STX  ,7777,$GPRMC,010105.000,A,2029.290310,S,05435.288530,W,1.6,  0.0,180314,   ,   ,A*68,F,,imei:013227009739313,0/8,600.3,Battery=96%,,0,724,06,04F3,7910;03
 		private void gravaMensagemBanco(String mensagem) throws DAOException {
 			String[] partes = mensagem.split(",");
 			if (partes.length == 0)
 				throw new UnsupportedOperationException("Mensagem inválida! " + mensagem);
 			
-			String p0 = partes[0];
+			//String p0 = partes[0]; // Dispositivo Origem
+			String serial = partes[1]; // serial do equipamento			
 			
-			String serial = p0.substring(0, p0.indexOf('$'));
-				
 			SocketTrackerDAO dao = SocketTrackerDAO.getInstance();
 			Tracker t = dao.buscarTodosTrackersPeloSerial(serial);
 			if (t == null)
 				throw new UnsupportedOperationException("Tracker com o número de série " + serial + " não foi encontrado");
 			
-			String tipoMensagem = p0.substring(p0.indexOf('$'));
+			String tipoMensagem = partes[2];
 			MessageType m = MessageType.valueOf(tipoMensagem);
 			if (m == null)
 				throw new UnsupportedOperationException("Tipo de mensagem inválida! " + tipoMensagem);
 			
 			switch (m) {
 				case $GPRMC:
-					String strHoraCoordenada = partes[1];
-					String coordenadaValida = partes[2];
+					String strHoraCoordenada = partes[3];
+					String coordenadaValida = partes[4];
 					if (!coordenadaValida.equals("A")) { // coordenada não é válida
-						LOG.warn("Coordenada com indicação que não é válida na string. " + mensagem);
+						LOG.warn("Coordenadas não fixadas pelos satélites (status = V): " + mensagem);
 						return;
 					}
-					String latitude = partes[3];
-					String latitudeQ = partes[4];
-					String longitude = partes[5];
-					String longitudeQ = partes[6];
-					String strVelocidade = partes[7];
-					String strCurso = partes[8];
-					String strDataCoordenada = partes[9];
-					//String declinacaoMag = partes[10];
-					//String declinacaoMagQ = partes[11];
+					String latitude = partes[5];
+					String latitudeQ = partes[6];
+					String longitude = partes[7];
+					String longitudeQ = partes[8];
+					String strVelocidade = partes[9];
+					String strCurso = partes[10];
+					String strDataCoordenada = partes[11];
+					//String declinacaoMag = partes[12];
+					//String declinacaoMagQ = partes[13];
 					
 					Calendar c = GregorianCalendar.getInstance(TimeZone.getTimeZone("GMT"));
 					int hora = Integer.parseInt(strHoraCoordenada.substring(0, 2));
@@ -216,8 +271,10 @@ public class SocketTracker {
 					c.setTimeZone(TimeZone.getDefault());
 					
 					// convertendo as coordenadas para graus decimais
-					int graus = Integer.parseInt(latitude.substring(0, 2));
-					double min = Double.parseDouble(latitude.substring(2, 11));
+					int idx = latitude.indexOf('.');
+					
+					int graus = Integer.parseInt(latitude.substring(0, idx - 2));
+					double min = Double.parseDouble(latitude.substring(idx - 2));
 					//double sec = Double.parseDouble(latitude.substring(5, 11));
 					//sec /= 10000; // ajusta casas decimais para o formato 74.6172
 					
@@ -226,9 +283,11 @@ public class SocketTracker {
 						latitudeDec = -latitudeDec;
 					
 					latitudeDec = Utilitarios.round(latitudeDec, 6);
+					
+					idx = longitude.indexOf('.');
 										
-					graus = Integer.parseInt(longitude.substring(0, 3));
-					min = Double.parseDouble(longitude.substring(3, 12));
+					graus = Integer.parseInt(longitude.substring(0, idx - 2));
+					min = Double.parseDouble(longitude.substring(idx - 2));
 					//sec = Double.parseDouble(longitude.substring(6, 12));
 					//sec /= 10000; // ajusta casas decimais para o formato 74.6172
 					
@@ -257,6 +316,8 @@ public class SocketTracker {
 					p.setTracker(t);
 															
 					dao.adicionar(p);
+					
+					LOG.debug("Mensagem gravada no banco.");
 					
 					break;
 				default: 

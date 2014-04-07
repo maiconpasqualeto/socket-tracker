@@ -17,11 +17,11 @@
   			<property name="hibernate.hbm2ddl.auto" value="none"/>
   			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
   			<property name="hibernate.connection.driver_class" value="org.postgresql.Driver"/>
-			<!-- <property name="hibernate.connection.url" value="jdbc:postgresql://localhost:5432/tracker"/> --> 
+			<!-- <property name="hibernate.connection.url" value="jdbc:postgresql://localhost:5432/tracker"/> -->
 			<property name="hibernate.connection.url" value="jdbc:postgresql://172.31.15.144:5432/tracker"/> 
 			<property name="hibernate.connection.username" value="postgres"/>
 			<!-- <property name="hibernate.connection.password" value="postgres"/> -->
-			<property name="hibernate.connection.password" value="sixtec123!@"/>	
+			<property name="hibernate.connection.password" value="sixtec123!@"/>
 			
 			<!-- Connection pool -->
 	        <property name="hibernate.connection.provider_class" value="org.hibernate.connection.C3P0ConnectionProvider"/>

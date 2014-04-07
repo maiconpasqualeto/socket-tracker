@@ -23,7 +23,7 @@ public class ThreadPoolSocketTracker implements Runnable {
 	protected ServerSocket serverSocket = null;
 	protected boolean isStopped = false;
 	protected Thread runningThread = null;
-	protected ExecutorService threadPool = Executors.newFixedThreadPool(10);
+	protected ExecutorService threadPool = Executors.newFixedThreadPool(100);
 
 	public ThreadPoolSocketTracker(int port) {
 		this.serverPort = port;

@@ -51,10 +51,7 @@ public class ThreadMensagemSocket implements Runnable {
 						socket.getInputStream()));
 				bw = new BufferedWriter(new OutputStreamWriter(
 						socket.getOutputStream()));
-	
-				bw.write("%001\n\n");
-				bw.flush();
-	
+				
 				// NANO ,024249.000,V, 0.000000,N, 0.000000,E,0.0,
 				// 0.0,101010,020,005
 				// NANO ,000321.000,V,8960.000000,N, 0.000000,E,0.0, 0.0,101010,
@@ -67,6 +64,10 @@ public class ThreadMensagemSocket implements Runnable {
 				while ((line = br.readLine()) != null) {
 					LOG.debug("Recebido: " + line);
 					if (line.startsWith("NANO")) {
+						
+						bw.write("%001\n\n");
+						bw.flush();
+						
 						String[] partes = line.split(",");
 	
 						StringBuilder str = new StringBuilder();
@@ -90,12 +91,13 @@ public class ThreadMensagemSocket implements Runnable {
 						gravaMensagemBanco(str.toString());
 	
 					} else // TKSIM - Android Tracker Simulator
-					if (line.startsWith("TKSIM")) {
+						if (line.startsWith("TKSIM")) {
 	
 						gravaMensagemBanco(line);
 	
-					} else if (line.startsWith("STX")) {
-						String[] partes = line.split(",");
+					} else 
+						if (line.startsWith("STX")) {
+							String[] partes = line.split(",");
 	
 						if ("F".equals(partes[15]))
 							gravaMensagemBanco(line);

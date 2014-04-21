@@ -96,7 +96,8 @@ public class ThreadMensagemSocket implements Runnable {
 						gravaMensagemBanco(line);
 	
 					} else 
-						if (line.startsWith("STX")) {
+						if (line.startsWith("STX") ||
+								line.startsWith("LOGSTX")) {
 							String[] partes = line.split(",");
 	
 						if ("F".equals(partes[15]))

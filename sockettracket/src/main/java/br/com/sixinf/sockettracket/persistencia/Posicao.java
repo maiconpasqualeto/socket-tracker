@@ -75,6 +75,9 @@ public class Posicao implements Entidade {
 	@JoinColumn(name="id_tracker")
 	private Tracker tracker;
 	
+	@Column(name="mensagem_alerta")
+	private String mensagemAlerta;
+	
 	public Long getId() {
 		return id;
 	}
@@ -185,6 +188,14 @@ public class Posicao implements Entidade {
 
 	public void setCurso(Double curso) {
 		this.curso = curso;
+	}
+
+	public String getMensagemAlerta() {
+		return mensagemAlerta;
+	}
+
+	public void setMensagemAlerta(String mensagemAlerta) {
+		this.mensagemAlerta = mensagemAlerta;
 	}
 
 	@Override

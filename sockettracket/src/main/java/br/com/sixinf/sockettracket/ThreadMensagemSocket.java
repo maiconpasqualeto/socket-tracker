@@ -88,21 +88,32 @@ public class ThreadMensagemSocket implements Runnable {
 						str.append(partes[8]).append(',');
 						str.append(partes[9]);
 	
-						gravaMensagemBanco(str.toString());
+						gravaMensagemBanco(str.toString(), null);
 	
 					} else // TKSIM - Android Tracker Simulator
 						if (line.startsWith("TKSIM")) {
 	
-						gravaMensagemBanco(line);
+						gravaMensagemBanco(line, null);
 	
 					} else 
 						if (line.startsWith("STX") ||
 								line.startsWith("LOGSTX")) {
+							
 							String[] partes = line.split(",");
-	
-						if ("F".equals(partes[15]))
-							gravaMensagemBanco(line);
-	
+							
+							String latLong = partes[5] + partes[6] + partes[7] + partes[8];
+							String strIdModulo = partes[1];
+							String ultimoLatoLong = MemoryPersist.getInstance().getValue(strIdModulo);
+							String msgAlerta = partes[16]; 
+														
+							if (!latLong.equals(ultimoLatoLong)) {
+								
+								gravaMensagemBanco(line, msgAlerta.isEmpty() ? null : msgAlerta);
+								
+								MemoryPersist.getInstance().put(strIdModulo, latLong);
+							}
+							
+							
 					}
 	
 				}
@@ -141,7 +152,7 @@ public class ThreadMensagemSocket implements Runnable {
 	// STX ,7777,$GPRMC,010105.000,A,2029.290310,S,05435.288530,W,1.6,
 	// 0.0,180314, ,
 	// ,A*68,F,,imei:013227009739313,0/8,600.3,Battery=96%,,0,724,06,04F3,7910;03
-	private void gravaMensagemBanco(String mensagem) throws DAOException {
+	private void gravaMensagemBanco(String mensagem, String mensagemAlerta) throws DAOException {
 		String[] partes = mensagem.split(",");
 		if (partes.length == 0)
 			throw new UnsupportedOperationException("Mensagem inválida! "
@@ -245,6 +256,7 @@ public class ThreadMensagemSocket implements Runnable {
 			p.setVelocidade(velocidade);
 			p.setCurso(curso);
 			p.setTracker(t);
+			p.setMensagemAlerta(mensagemAlerta);
 
 			dao.adicionar(p);
 

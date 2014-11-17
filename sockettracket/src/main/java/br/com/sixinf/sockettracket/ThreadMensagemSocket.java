@@ -190,8 +190,6 @@ public class ThreadMensagemSocket implements Runnable {
 			String strVelocidade = partes[9];
 			String strCurso = partes[10];
 			String strDataCoordenada = partes[11];
-			// String declinacaoMag = partes[12];
-			// String declinacaoMagQ = partes[13];
 
 			Calendar c = GregorianCalendar.getInstance(TimeZone
 					.getTimeZone("GMT"));
@@ -217,8 +215,6 @@ public class ThreadMensagemSocket implements Runnable {
 
 			int graus = Integer.parseInt(latitude.substring(0, idx - 2));
 			double min = Double.parseDouble(latitude.substring(idx - 2));
-			// double sec = Double.parseDouble(latitude.substring(5, 11));
-			// sec /= 10000; // ajusta casas decimais para o formato 74.6172
 
 			double latitudeDec = graus + (min / 60);
 			if (latitudeQ.equals("S"))
@@ -230,8 +226,6 @@ public class ThreadMensagemSocket implements Runnable {
 
 			graus = Integer.parseInt(longitude.substring(0, idx - 2));
 			min = Double.parseDouble(longitude.substring(idx - 2));
-			// sec = Double.parseDouble(longitude.substring(6, 12));
-			// sec /= 10000; // ajusta casas decimais para o formato 74.6172
 
 			double longitudeDec = graus + (min / 60);
 			if (longitudeQ.equals("W"))
